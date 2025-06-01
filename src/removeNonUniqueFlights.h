@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "utility/flightUtility.h"
+#include "flightClass/flight.h"
 
 void removeNonUniqueFlights(const std::string& inFilename, const std::string& outFilename) {
 	std::ifstream in(inFilename);
@@ -17,17 +17,21 @@ void removeNonUniqueFlights(const std::string& inFilename, const std::string& ou
 		return;
 	}
 
-	std::unordered_set<std::string> uniqueFlights{};
+	std::unordered_set<flight> uniqueFFlights{};
 	std::string line{};
 
 	while (std::getline(in, line)) {
-		try {
-			if (uniqueFlights.insert(normalizeFlight(line)).second) {
-				out << line << "\n";
+		line.erase(
+		std::find_if(line.rbegin(), line.rend(), [](unsigned char ch) {
+					return !std::isspace(ch);
+			}).base(),
+			line.end()
+			);
+		const auto flight = flight::create(line);
+		if (flight) {
+			if (uniqueFFlights.insert(flight.value()).second) {
+				out << flight.value().get_flight() << "\n";
 			}
-		}
-		catch (const std::length_error& e) {
-			continue;
 		}
 	}
 }
